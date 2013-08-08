@@ -6,6 +6,9 @@
 
   (defn watcher [event client]
     (prn event)
-    true) ;keep watching it
+    (if (= (:type event) "NodeDeleted")
+      false ;when node was deleted we can't bind to this node again
+      true)) ;keep watching it
 
-  (.watch *client* watcher "/foo"))
+  (let [path (.create *client* "/foo" "somedata" :PERSISTENT)]
+    (.watch *client* watcher path)))
