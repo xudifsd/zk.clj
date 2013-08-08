@@ -5,6 +5,10 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
+import org.xudifsd.zk.WatcherWrapper;
+
+import clojure.lang.IFn;
+
 import java.io.IOException;
 
 public class ZkClient {
@@ -24,5 +28,9 @@ public class ZkClient {
 
 	public void create(String path, String data) throws Exception {
 		client.create().forPath(path, data.getBytes());
+	}
+
+	public void watch(IFn function, String path) throws Exception {
+		client.getChildren().usingWatcher(new WatcherWrapper(client, function, path)).forPath(path);
 	}
 }

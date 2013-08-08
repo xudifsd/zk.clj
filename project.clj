@@ -7,4 +7,8 @@
   :javac-options ["-source" "1.6" "-target" "1.6" "-g"]
   :java-source-paths ["src/java"]
   :dependencies [[org.clojure/clojure "1.5.1"]
+                 [org.apache.zookeeper/zookeeper "3.4.5"
+                  :exclusions [com.sun.jmx/jmxri
+                               com.sun.jdmk/jmxtools
+                               javax.jms/jms]]
                  [org.apache.curator/curator-framework "2.1.0-incubating"]])
