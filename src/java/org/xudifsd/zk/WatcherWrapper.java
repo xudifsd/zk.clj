@@ -4,7 +4,6 @@ import clojure.lang.Keyword;
 import clojure.lang.IFn;
 import clojure.lang.PersistentHashMap;
 
-import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.WatchedEvent;
 
 import org.apache.curator.framework.CuratorFramework;
@@ -13,68 +12,24 @@ import org.apache.curator.framework.api.CuratorWatcher;
 import java.util.HashMap;
 import java.lang.ClassCastException;
 
+import static org.xudifsd.zk.Bridge.getTypeString;
+import static org.xudifsd.zk.Bridge.getStateString;
+import static org.xudifsd.zk.Bridge.getKeyword;
+
 public class WatcherWrapper implements CuratorWatcher {
 	private CuratorFramework client;
 	private IFn function;
 	private String path;
+	private WatcherType type;
+	public static enum WatcherType {
+		EXISTS, GETCHILDREN, GETDATA;
+	}
 
-	public WatcherWrapper(CuratorFramework client, IFn function, String path) {
+	public WatcherWrapper(CuratorFramework client, IFn function, String path, WatcherType type) {
 		this.client = client;
 		this.function = function;
 		this.path = path;
-	}
-
-	private static Keyword getKeyword(String s) {
-		return Keyword.intern(s);
-	}
-
-	private static String getTypeString(Watcher.Event.EventType type) {
-		String result = null;
-
-		switch (type) {
-		case NodeChildrenChanged:
-			result = "NodeChildrenChanged";
-			break;
-		case NodeCreated:
-			result = "NodeCreated";
-			break;
-		case NodeDataChanged:
-			result = "NodeDataChanged";
-			break;
-		case NodeDeleted:
-			result = "NodeDeleted";
-			break;
-		}
-		return result;
-	}
-
-	private static String getStateString(Watcher.Event.KeeperState state) {
-		String result = null;
-
-		switch (state) {
-		case AuthFailed:
-			result = "AuthFailed";
-			break;
-		case ConnectedReadOnly:
-			result = "ConnectedReadOnly";
-			break;
-		case Disconnected:
-			result = "Disconnected";
-			break;
-		case Expired:
-			result = "Expired";
-			break;
-		case NoSyncConnected:
-			result = "NoSyncConnected";
-			break;
-		case SaslAuthenticated:
-			result = "SaslAuthenticated";
-			break;
-		case SyncConnected:
-			result = "SyncConnected";
-			break;
-		}
-		return result;
+		this.type = type;
 	}
 
 	@Override
@@ -93,7 +48,18 @@ public class WatcherWrapper implements CuratorWatcher {
 			//pass
 		}
 
-		if (keepWatching)
-			client.getChildren().usingWatcher(this).forPath(path);
+		if (keepWatching) {
+			switch (type) {
+			case EXISTS:
+				client.checkExists().usingWatcher(this).forPath(path);
+				break;
+			case GETCHILDREN:
+				client.getChildren().usingWatcher(this).forPath(path);
+				break;
+			case GETDATA:
+				client.getData().usingWatcher(this).forPath(path);
+				break;
+			}
+		}
 	}
 }

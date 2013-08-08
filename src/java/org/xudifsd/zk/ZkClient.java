@@ -5,6 +5,7 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.data.Stat;
 
 import org.xudifsd.zk.WatcherWrapper;
 
@@ -12,6 +13,9 @@ import clojure.lang.IFn;
 import clojure.lang.Keyword;
 import clojure.lang.PersistentVector;
 import clojure.lang.IPersistentVector;
+import clojure.lang.IPersistentMap;
+
+import static org.xudifsd.zk.Bridge.getStatMap;
 
 public class ZkClient {
 	private CuratorFramework client = null;
@@ -27,7 +31,6 @@ public class ZkClient {
 		client = client.usingNamespace(namespace);
 	}
 
-	// returns created path, curator's framwork will add GUID prefix
 	public String create(String path, String data) throws Exception {
 		return client.create().creatingParentsIfNeeded().forPath(path, data.getBytes());
 	}
@@ -55,7 +58,34 @@ public class ZkClient {
 		return PersistentVector.create(client.getChildren().forPath(path));
 	}
 
-	public void watch(IFn function, String path) throws Exception {
-		client.getChildren().usingWatcher(new WatcherWrapper(client, function, path)).forPath(path);
+	public IPersistentVector getChildren(String path, IFn handler) throws Exception {
+		return PersistentVector.create(client.getChildren().usingWatcher(
+					new WatcherWrapper(client, handler, path, WatcherWrapper.WatcherType.GETCHILDREN)).forPath(path));
+	}
+
+	public String getData(String path) throws Exception {
+		return client.getData().forPath(path).toString();
+	}
+
+	public String getData(String path, IFn handler) throws Exception {
+		return client.getData().usingWatcher(
+				new WatcherWrapper(client, handler, path, WatcherWrapper.WatcherType.GETDATA)).forPath(path).toString();
+	}
+
+	public IPersistentMap exists(String path) throws Exception {
+		return getStatMap(client.checkExists().forPath(path));
+	}
+
+	public IPersistentMap exists(String path, IFn handler) throws Exception {
+		return getStatMap(client.checkExists().usingWatcher(
+					new WatcherWrapper(client, handler, path, WatcherWrapper.WatcherType.EXISTS)).forPath(path));
+	}
+
+	public void delete(String path) throws Exception {
+		client.delete().forPath(path);
+	}
+
+	public void delete(String path, int version) throws Exception {
+		client.delete().withVersion(version).forPath(path);
 	}
 }

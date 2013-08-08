@@ -10,5 +10,5 @@
       false ;when node was deleted we can't bind to this node again
       true)) ;keep watching it
 
-  (let [path (.create *client* "/foo" "somedata" :PERSISTENT)]
-    (.watch *client* watcher path)))
+  (let [path (.create *client* "/foo" "somedata" :EPHEMERAL)]
+    (.exists *client* path watcher)))
