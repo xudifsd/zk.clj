@@ -6,6 +6,8 @@ import clojure.lang.PersistentHashMap;
 
 import org.apache.zookeeper.WatchedEvent;
 
+import org.apache.log4j.Logger;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.CuratorWatcher;
 
@@ -17,6 +19,7 @@ import static org.xudifsd.zk.Bridge.getStateString;
 import static org.xudifsd.zk.Bridge.getKeyword;
 
 public class WatcherWrapper implements CuratorWatcher {
+	private static final Logger logger = Logger.getLogger(WatcherWrapper.class);
 	private CuratorFramework client;
 	private IFn function;
 	private String path;

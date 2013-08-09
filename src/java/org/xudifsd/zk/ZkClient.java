@@ -6,6 +6,8 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 
 import org.apache.zookeeper.CreateMode;
 
+import org.apache.log4j.Logger;
+
 import org.xudifsd.zk.WatcherWrapper;
 
 import clojure.lang.IFn;
@@ -19,6 +21,7 @@ import java.util.List;
 import static org.xudifsd.zk.Bridge.getStatMap;
 
 public class ZkClient {
+	private static final Logger logger = Logger.getLogger(ZkClient.class);
 	private CuratorFramework client = null;
 
 	public ZkClient(String connectString) throws Exception {
