@@ -5,7 +5,6 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.data.Stat;
 
 import org.xudifsd.zk.WatcherWrapper;
 
@@ -14,6 +13,8 @@ import clojure.lang.Keyword;
 import clojure.lang.PersistentVector;
 import clojure.lang.IPersistentVector;
 import clojure.lang.IPersistentMap;
+
+import java.util.List;
 
 import static org.xudifsd.zk.Bridge.getStatMap;
 
@@ -32,7 +33,7 @@ public class ZkClient {
 	}
 
 	public String create(String path, String data) throws Exception {
-		return client.create().creatingParentsIfNeeded().forPath(path, data.getBytes());
+		return client.create().creatingParentsIfNeeded().forPath(path, data.getBytes("UTF-8"));
 	}
 
 	// returns created path, curator's framwork will add GUID prefix
@@ -51,7 +52,9 @@ public class ZkClient {
 		else
 			throw new RuntimeException("unknow create mode");
 
-		return client.create().creatingParentsIfNeeded().withProtection().withMode(cmode).forPath(path, data.getBytes());
+		return client.create().creatingParentsIfNeeded().
+					withProtection().withMode(cmode).
+					forPath(path, data.getBytes("UTF-8"));
 	}
 
 	public IPersistentVector getChildren(String path) throws Exception {
@@ -59,17 +62,20 @@ public class ZkClient {
 	}
 
 	public IPersistentVector getChildren(String path, IFn handler) throws Exception {
-		return PersistentVector.create(client.getChildren().usingWatcher(
-					new WatcherWrapper(client, handler, path, WatcherWrapper.WatcherType.GETCHILDREN)).forPath(path));
+		WatcherWrapper watcher = new WatcherWrapper(client, handler, path,
+											WatcherWrapper.WatcherType.GETCHILDREN);
+		List<String> result = client.getChildren().usingWatcher(watcher).forPath(path);
+		return PersistentVector.create(result);
 	}
 
 	public String getData(String path) throws Exception {
-		return client.getData().forPath(path).toString();
+		return new String(client.getData().forPath(path), "UTF-8");
 	}
 
 	public String getData(String path, IFn handler) throws Exception {
-		return client.getData().usingWatcher(
-				new WatcherWrapper(client, handler, path, WatcherWrapper.WatcherType.GETDATA)).forPath(path).toString();
+		WatcherWrapper watcher = new WatcherWrapper(client, handler, path,
+											WatcherWrapper.WatcherType.GETDATA);
+		return new String(client.getData().usingWatcher(watcher).forPath(path), "UTF-8");
 	}
 
 	public IPersistentMap exists(String path) throws Exception {
@@ -77,8 +83,9 @@ public class ZkClient {
 	}
 
 	public IPersistentMap exists(String path, IFn handler) throws Exception {
-		return getStatMap(client.checkExists().usingWatcher(
-					new WatcherWrapper(client, handler, path, WatcherWrapper.WatcherType.EXISTS)).forPath(path));
+		WatcherWrapper watcher = new WatcherWrapper(client, handler, path,
+											WatcherWrapper.WatcherType.EXISTS);
+		return getStatMap(client.checkExists().usingWatcher(watcher).forPath(path));
 	}
 
 	public void delete(String path) throws Exception {
@@ -87,5 +94,13 @@ public class ZkClient {
 
 	public void delete(String path, int version) throws Exception {
 		client.delete().withVersion(version).forPath(path);
+	}
+
+	public IPersistentMap setData(String path, String data) throws Exception {
+		return getStatMap(client.setData().forPath(path, data.getBytes("UTF-8")));
+	}
+
+	public IPersistentMap setData(String path, String data, int version) throws Exception {
+		return getStatMap(client.setData().withVersion(version).forPath(path, data.getBytes("UTF-8")));
 	}
 }
