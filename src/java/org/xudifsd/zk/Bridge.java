@@ -2,6 +2,7 @@ package org.xudifsd.zk;
 
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.data.Stat;
+import org.apache.curator.framework.state.ConnectionState;
 
 import java.util.HashMap;
 
@@ -12,6 +13,29 @@ import clojure.lang.Keyword;
 public class Bridge {
 	public static Keyword getKeyword(String s) {
 		return Keyword.intern(s);
+	}
+
+	public static String getConnectionStateString(ConnectionState state) {
+		String result = null;
+
+		switch (state) {
+		case CONNECTED:
+			result = "CONNECTED";
+			break;
+		case LOST:
+			result = "LOST";
+			break;
+		case READ_ONLY:
+			result = "READ_ONLY";
+			break;
+		case RECONNECTED:
+			result = "RECONNECTED";
+			break;
+		case SUSPENDED:
+			result = "SUSPENDED";
+			break;
+		}
+		return result;
 	}
 
 	public static String getTypeString(Watcher.Event.EventType type) {

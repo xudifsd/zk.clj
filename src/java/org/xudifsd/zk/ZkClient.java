@@ -19,6 +19,7 @@ import clojure.lang.IPersistentMap;
 import java.util.List;
 
 import static org.xudifsd.zk.Bridge.getStatMap;
+import org.xudifsd.zk.ConnectionStateListenerWrapper;
 
 public class ZkClient {
 	private static final Logger logger = Logger.getLogger(ZkClient.class);
@@ -29,10 +30,19 @@ public class ZkClient {
 		client.start();
 	}
 
+	public ZkClient(String connectString, IFn handler) throws Exception {
+		this(connectString);
+		client.getConnectionStateListenable().addListener(new ConnectionStateListenerWrapper(handler));
+	}
+
 	public ZkClient(String connectString, String namespace) throws Exception {
-		client = CuratorFrameworkFactory.newClient(connectString, new ExponentialBackoffRetry(1000, 3));
-		client.start();
+		this(connectString);
 		client = client.usingNamespace(namespace);
+	}
+
+	public ZkClient(String connectString, String namespace, IFn handler) throws Exception {
+		this(connectString, namespace);
+		client.getConnectionStateListenable().addListener(new ConnectionStateListenerWrapper(handler));
 	}
 
 	public String create(String path, String data) throws Exception {
