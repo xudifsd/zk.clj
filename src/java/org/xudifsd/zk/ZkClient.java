@@ -3,6 +3,7 @@ package org.xudifsd.zk;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.curator.utils.ZKPaths;
 
 import org.apache.zookeeper.CreateMode;
 
@@ -17,6 +18,7 @@ import clojure.lang.IPersistentVector;
 import clojure.lang.IPersistentMap;
 
 import java.util.List;
+import java.util.ArrayList;
 
 import static org.xudifsd.zk.Bridge.getStatMap;
 import org.xudifsd.zk.ConnectionStateListenerWrapper;
@@ -70,15 +72,24 @@ public class ZkClient {
 					forPath(path, data.getBytes("UTF-8"));
 	}
 
+	private List<String> getFullPath(String path, List<String> prev) {
+		List<String> result = new ArrayList<String>();
+		for (int i = 0; i < prev.size(); i++)
+			result.add(ZKPaths.makePath(path, prev.get(i)));
+		return result;
+	}
+
 	public IPersistentVector getChildren(String path) throws Exception {
-		return PersistentVector.create(client.getChildren().forPath(path));
+		List<String> result = client.getChildren().forPath(path);
+
+		return PersistentVector.create(getFullPath(path, result));
 	}
 
 	public IPersistentVector getChildren(String path, IFn handler) throws Exception {
 		WatcherWrapper watcher = new WatcherWrapper(client, handler, path,
 											WatcherWrapper.WatcherType.GETCHILDREN);
 		List<String> result = client.getChildren().usingWatcher(watcher).forPath(path);
-		return PersistentVector.create(result);
+		return PersistentVector.create(getFullPath(path, result));
 	}
 
 	public String getData(String path) throws Exception {
