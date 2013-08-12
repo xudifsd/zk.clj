@@ -1,6 +1,7 @@
 (ns org.xudifsd.zk.demo
   (:import org.xudifsd.zk.ZkClient
-           org.xudifsd.zk.AtomicLong))
+           org.xudifsd.zk.AtomicLong
+           org.apache.curator.framework.recipes.barriers.DistributedDoubleBarrier))
 
 (defn demo-atomic [client]
   (let [atomic (AtomicLong. client "/counter")]
@@ -18,8 +19,14 @@
   (defn state-watcher [state client]
     (prn state))
 
-  (def ^:dynamic *client* (ZkClient. server state-watcher))
+  (def ^:dynamic *client* (ZkClient. server "myapp" state-watcher))
 
   (let [path (.create *client* "/foo" "somedata" :EPHEMERAL)]
     (.exists *client* path watcher))
-  (demo-atomic (.getClient *client*)))
+
+  (demo-atomic (.getClient *client*))
+  ; (import 'org.xudifsd.zk.Barrier)
+  ; (use 'org.xudifsd.utils)
+  ; (def bar (Barrier. (.getClient *client*) "/barrier" 2))
+  ; (with-barrier bar (prn "in sync"))
+  )
