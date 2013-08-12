@@ -1,3 +1,3 @@
 # zk.clj
 
-More than just a wrapper of clojure for zookeeper
+Just a wrapper of clojure for curator zookeeper

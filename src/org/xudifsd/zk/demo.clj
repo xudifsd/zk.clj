@@ -1,5 +1,13 @@
 (ns org.xudifsd.zk.demo
-  (:import org.xudifsd.zk.ZkClient))
+  (:import org.xudifsd.zk.ZkClient
+           org.xudifsd.zk.AtomicLong))
+
+(defn demo-atomic [client]
+  (let [atomic (AtomicLong. client "/counter")]
+    (doto atomic
+      (.increment)
+      (.add 100))
+    (.get atomic)))
 
 (defn bootstrap [^String server]
   (defn watcher [event client]
@@ -13,4 +21,5 @@
   (def ^:dynamic *client* (ZkClient. server state-watcher))
 
   (let [path (.create *client* "/foo" "somedata" :EPHEMERAL)]
-    (.exists *client* path watcher)))
+    (.exists *client* path watcher))
+  (demo-atomic (.getClient *client*)))

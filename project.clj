@@ -11,4 +11,5 @@
                   :exclusions [com.sun.jmx/jmxri
                                com.sun.jdmk/jmxtools
                                javax.jms/jms]]
-                 [org.apache.curator/curator-framework "2.1.0-incubating"]])
+                 [org.apache.curator/curator-framework "2.2.0-incubating"]
+                 [org.apache.curator/curator-recipes "2.2.0-incubating"]])

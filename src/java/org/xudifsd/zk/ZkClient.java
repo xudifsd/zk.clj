@@ -47,6 +47,10 @@ public class ZkClient {
 		client.getConnectionStateListenable().addListener(new ConnectionStateListenerWrapper(handler));
 	}
 
+	public CuratorFramework getClient() {
+		return this.client;
+	}
+
 	public String create(String path, String data) throws Exception {
 		return client.create().creatingParentsIfNeeded().forPath(path, data.getBytes("UTF-8"));
 	}
