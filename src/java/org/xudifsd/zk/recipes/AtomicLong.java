@@ -1,4 +1,4 @@
-package org.xudifsd.zk;
+package org.xudifsd.zk.recipes;
 
 import org.apache.curator.framework.recipes.atomic.DistributedAtomicLong;
 import org.apache.curator.framework.recipes.atomic.AtomicValue;

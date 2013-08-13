@@ -1,6 +1,6 @@
 (ns org.xudifsd.zk.utils
-  (:import org.xudifsd.zk.Barrier
-           org.xudifsd.zk.Semaphore))
+  (:import org.xudifsd.zk.recipes.Barrier
+           org.xudifsd.zk.recipes.Semaphore))
 
 (defmacro ignore-exceptions [exceptions & body]
   `(try

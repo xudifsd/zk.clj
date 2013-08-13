@@ -1,21 +1,8 @@
 (ns org.xudifsd.zk.demo
   (:import org.xudifsd.zk.ZkClient
-           org.xudifsd.zk.AtomicLong
-           org.xudifsd.zk.LeaderSelection)
+           org.xudifsd.zk.recipes.AtomicLong
+           org.xudifsd.zk.recipes.LeaderSelection)
   (:use org.xudifsd.zk.utils))
-
-(defn demo-atomic [client]
-  (let [atomic (AtomicLong. client "/counter")]
-    (doto atomic
-      (.increment)
-      (.add 100))
-    (.get atomic)))
-
-(defn leader-selection-listener [^Boolean is-leader participants] ;participants maybe nil
-  (pr "is-leader: ")
-  (prn is-leader)
-  (pr "participants")
-  (prn participants))
 
 (defn bootstrap [^String server]
   (defn watcher [event client]
@@ -27,6 +14,19 @@
   (defn state-watcher [state client]
     (prn state))
 
+  (defn demo-atomic [client]
+    (let [atomic (AtomicLong. client "/counter")]
+      (doto atomic
+        (.increment)
+        (.add 100))
+      (.get atomic)))
+
+  (defn leader-selection-listener [^Boolean is-leader participants] ;participants maybe nil
+    (pr "is-leader: ")
+    (prn is-leader)
+    (pr "participants")
+    (prn participants))
+
   (def ^:dynamic *client* (ZkClient. server "myapp" state-watcher))
 
   (let [path (.create *client* "/foo" "somedata" :EPHEMERAL)]
@@ -37,14 +37,6 @@
   (defn demo-barrier []
     (with-barrier (.getClient *client*) "/barrier" 2
                   (prn "in sync")))
-  ; you can try following
-  ; $ lein repl
-  ; user=> (use 'org.xudifsd.zk.demo)
-  ; user=> (bootstrap "localhost:2181")
-  ; user=> (demo-barrier)
-  ;
-  ; and in other shell do it again to see the effect, of course
-  ; have zookeeper server started
 
   (defn demo-semaphore []
     (with-semaphore (.getClient *client*) "/semaphore" 1
