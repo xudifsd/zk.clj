@@ -1,7 +1,8 @@
 (ns org.xudifsd.zk.demo
   (:import org.xudifsd.zk.ZkClient
            org.xudifsd.zk.AtomicLong
-           org.xudifsd.zk.LeaderSelection))
+           org.xudifsd.zk.LeaderSelection)
+  (:use org.xudifsd.zk.utils))
 
 (defn demo-atomic [client]
   (let [atomic (AtomicLong. client "/counter")]
@@ -33,11 +34,21 @@
 
   (demo-atomic (.getClient *client*))
 
-  ; demo Barrier
-  ; (import 'org.xudifsd.zk.Barrier)
-  ; (use 'org.xudifsd.utils)
-  ; (def bar (Barrier. (.getClient *client*) "/barrier" 2))
-  ; (with-barrier bar (prn "in sync"))
+  (defn demo-barrier []
+    (with-barrier (.getClient *client*) "/barrier" 2
+                  (prn "in sync")))
+  ; you can try following
+  ; $ lein repl
+  ; user=> (use 'org.xudifsd.zk.demo)
+  ; user=> (bootstrap "localhost:2181")
+  ; user=> (demo-barrier)
+  ;
+  ; and in other shell do it again to see the effect, of course
+  ; have zookeeper server started
+
+  (defn demo-semaphore []
+    (with-semaphore (.getClient *client*) "/semaphore" 1
+                    (read)));note 1 must be
 
   (LeaderSelection. (.getClient *client*) "/leader" "1" leader-selection-listener); should replace "1" to more meaningful info like host:port
   )

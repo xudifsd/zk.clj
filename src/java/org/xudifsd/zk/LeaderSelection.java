@@ -16,8 +16,8 @@ public class LeaderSelection implements LeaderLatchListener {
 	public LeaderSelection(CuratorFramework client, String path, String id, IFn handler) throws Exception {
 		this.latch = new LeaderLatch(client, path, id);
 		this.latch.addListener(this);
-		this.latch.start();
 		this.handler = handler;
+		this.latch.start();
 	}
 
 	@Override
