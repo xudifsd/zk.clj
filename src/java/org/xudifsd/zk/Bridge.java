@@ -3,11 +3,17 @@ package org.xudifsd.zk;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.data.Stat;
 import org.apache.curator.framework.state.ConnectionState;
+import org.apache.curator.framework.recipes.leader.Participant;
 
 import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Collection;
 
 import clojure.lang.PersistentHashMap;
 import clojure.lang.IPersistentMap;
+import clojure.lang.IPersistentVector;
+import clojure.lang.PersistentVector;
 import clojure.lang.Keyword;
 
 public class Bridge {
@@ -103,5 +109,25 @@ public class Bridge {
 		map.put(getKeyword("numChildren"), (long)stat.getNumChildren());
 
 		return PersistentHashMap.create(map);
+	}
+
+	public static IPersistentMap getParticipant(Participant participant) {
+		HashMap<Keyword, Object> map = new HashMap<Keyword, Object>();
+
+		map.put(getKeyword("id"), participant.getId());
+		map.put(getKeyword("is-leader"), participant.isLeader());
+
+		return PersistentHashMap.create(map);
+	}
+
+	public static IPersistentVector getParticipants(Collection<Participant> participants) {
+		ArrayList<IPersistentMap> list = new ArrayList<IPersistentMap>();
+
+		Iterator<Participant> it = participants.iterator();
+
+		while (it.hasNext())
+			list.add(getParticipant(it.next()));
+
+		return PersistentVector.create(list);
 	}
 }
